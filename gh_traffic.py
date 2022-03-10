@@ -30,9 +30,11 @@ thycotic_repos = {
 
 
 def get_repo_data(headers: dict, owner: str, repo: str) -> dict:
+    """Fetches all data required for output for each repo"""
     rep_data = requests.get(
         f"https://api.github.com/repos/{owner}/{repo}", headers=headers
     ).json()
+
     views = requests.get(
         f"https://api.github.com/repos/{owner}/{repo}/traffic/views", headers=headers
     ).json()
