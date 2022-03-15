@@ -7,35 +7,6 @@ from rich.console import Console
 from rich.table import Table
 
 
-# thycotic_repos = {
-#     "DSV-ADO-BuildTask",
-#     "TSS-ADO-BuildTask",
-#     "dsv-chef",
-#     "tss-chef",
-#     "dsv-jenkins-plugin",
-#     "dsv-k8s",
-#     "dsv-sdk-go",
-#     "dsv-sdk-java",
-#     "python-dsv-sdk",
-#     "python-tss-sdk",
-#     "dsv-sdk-ruby",
-#     "tss-sdk-ruby",
-#     "service-now-credential-resolver",
-#     "terraform-provider-dsv",
-#     "terraform-provider-tss",
-#     "tss-jenkins-plugin",
-#     "tss-k8s",
-#     "tss-sdk-go",
-#     "tss-sdk-java",
-# }
-
-
-def parse_repos_list_from_yaml(file) -> dict:
-    """Parses the YAML file and converts to Python objects"""
-    with open(file) as yaml_file:
-        return yaml.safe_load(yaml_file)
-
-
 def get_repo_data(headers: dict, owner: str, repo: str) -> dict:
     """Fetches all data required for output for each repo"""
     rep_data = requests.get(
@@ -62,10 +33,18 @@ def get_repo_data(headers: dict, owner: str, repo: str) -> dict:
     }
 
 
+def parse_repos_list_from_yaml(file) -> dict:
+    """Parses the YAML file and converts to Python objects"""
+    with open(file) as yaml_file:
+        return yaml.safe_load(yaml_file)
+
+
 @click.command()
 @click.argument("file", type=click.Path(exists=True))
 @click.option("--output", default=None)
 def main(file, output):
+    """Fetch GitHub repo stats!"""
+
     config = dotenv_values(".env")
     headers = {"Authorization": f"token {config.get('TOKEN')}"}
 
