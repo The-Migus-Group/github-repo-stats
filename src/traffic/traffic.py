@@ -1,32 +1,39 @@
 import csv
 import click
 import requests
+import yaml
 from dotenv import dotenv_values
 from rich.console import Console
 from rich.table import Table
 
 
-thycotic_repos = {
-    "DSV-ADO-BuildTask",
-    "TSS-ADO-BuildTask",
-    "dsv-chef",
-    "tss-chef",
-    "dsv-jenkins-plugin",
-    "dsv-k8s",
-    "dsv-sdk-go",
-    "dsv-sdk-java",
-    "python-dsv-sdk",
-    "python-tss-sdk",
-    "dsv-sdk-ruby",
-    "tss-sdk-ruby",
-    "service-now-credential-resolver",
-    "terraform-provider-dsv",
-    "terraform-provider-tss",
-    "tss-jenkins-plugin",
-    "tss-k8s",
-    "tss-sdk-go",
-    "tss-sdk-java",
-}
+# thycotic_repos = {
+#     "DSV-ADO-BuildTask",
+#     "TSS-ADO-BuildTask",
+#     "dsv-chef",
+#     "tss-chef",
+#     "dsv-jenkins-plugin",
+#     "dsv-k8s",
+#     "dsv-sdk-go",
+#     "dsv-sdk-java",
+#     "python-dsv-sdk",
+#     "python-tss-sdk",
+#     "dsv-sdk-ruby",
+#     "tss-sdk-ruby",
+#     "service-now-credential-resolver",
+#     "terraform-provider-dsv",
+#     "terraform-provider-tss",
+#     "tss-jenkins-plugin",
+#     "tss-k8s",
+#     "tss-sdk-go",
+#     "tss-sdk-java",
+# }
+
+
+def parse_repos_list_from_yaml(file) -> dict:
+    """Parses the YAML file and converts to Python objects"""
+    with open(file) as yaml_file:
+        return yaml.safe_load(yaml_file)
 
 
 def get_repo_data(headers: dict, owner: str, repo: str) -> dict:
@@ -44,7 +51,7 @@ def get_repo_data(headers: dict, owner: str, repo: str) -> dict:
     ).json()
 
     return {
-        "Repo": repo,
+        "Repo": f"{owner}/{repo}",
         "Forks": rep_data["forks_count"],
         "Stars": rep_data["stargazers_count"],
         "Watchers": rep_data["watchers_count"],
@@ -56,10 +63,13 @@ def get_repo_data(headers: dict, owner: str, repo: str) -> dict:
 
 
 @click.command()
+@click.argument("file", type=click.Path(exists=True))
 @click.option("--output", default=None)
-def main(output):
+def main(file, output):
     config = dotenv_values(".env")
     headers = {"Authorization": f"token {config.get('TOKEN')}"}
+
+    repos = parse_repos_list_from_yaml(file)
 
     if output is not None and output == "csv":
         with open("data.csv", "w") as file:
@@ -78,21 +88,23 @@ def main(output):
             )
             writer.writeheader()
 
-            for repo in thycotic_repos:
-                data = get_repo_data(headers, "thycotic", repo)
+            for repo_owner in repos["Owners"]:
+                owner = next(iter(repo_owner))
+                for repo in repo_owner[owner]:
+                    data = get_repo_data(headers, owner, repo)
 
-                writer.writerow(
-                    {
-                        "Repo": data["Repo"],
-                        "Forks": data["Forks"],
-                        "Stars": data["Stars"],
-                        "Watchers": data["Watchers"],
-                        "Clones Total": data["Clones Total"],
-                        "Clones Unique": data["Clones Unique"],
-                        "Views Total": data["Views Total"],
-                        "Views Unique": data["Views Unique"],
-                    }
-                )
+                    writer.writerow(
+                        {
+                            "Repo": data["Repo"],
+                            "Forks": data["Forks"],
+                            "Stars": data["Stars"],
+                            "Watchers": data["Watchers"],
+                            "Clones Total": data["Clones Total"],
+                            "Clones Unique": data["Clones Unique"],
+                            "Views Total": data["Views Total"],
+                            "Views Unique": data["Views Unique"],
+                        }
+                    )
 
         print("CSV file created.")
 
@@ -107,19 +119,21 @@ def main(output):
         table.add_column("Views Total", justify="center")
         table.add_column("Views Unique", justify="center")
 
-        for repo in thycotic_repos:
-            data = get_repo_data(headers, "thycotic", repo)
+        for repo_owner in repos["Owners"]:
+            owner = next(iter(repo_owner))
+            for repo in repo_owner[owner]:
+                data = get_repo_data(headers, owner, repo)
 
-            table.add_row(
-                str(data["Repo"]),
-                str(data["Forks"]),
-                str(data["Stars"]),
-                str(data["Watchers"]),
-                str(data["Clones Total"]),
-                str(data["Clones Unique"]),
-                str(data["Views Total"]),
-                str(data["Views Unique"]),
-            )
+                table.add_row(
+                    str(data["Repo"]),
+                    str(data["Forks"]),
+                    str(data["Stars"]),
+                    str(data["Watchers"]),
+                    str(data["Clones Total"]),
+                    str(data["Clones Unique"]),
+                    str(data["Views Total"]),
+                    str(data["Views Unique"]),
+                )
 
         console = Console()
         console.print(table)
