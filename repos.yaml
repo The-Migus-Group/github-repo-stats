@@ -1,0 +1,21 @@
+Owners:
+  - Thycotic:
+    - DSV-ADO-BuildTask
+    - TSS-ADO-BuildTask
+    - dsv-chef
+    - tss-chef
+    - dsv-jenkins-plugin
+    - dsv-k8s
+    - dsv-sdk-go
+    - dsv-sdk-java
+    - python-dsv-sdk
+    - python-tss-sdk
+    - dsv-sdk-ruby
+    - tss-sdk-ruby
+    - service-now-credential-resolver
+    - terraform-provider-dsv
+    - terraform-provider-tss
+    - tss-jenkins-plugin
+    - tss-k8s
+    - tss-sdk-go
+    - tss-sdk-java

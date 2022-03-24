@@ -1,0 +1,6 @@
+pyyaml
+requests
+click
+rich
+flit
+black
