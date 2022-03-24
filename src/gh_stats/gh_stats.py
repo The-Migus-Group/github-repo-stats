@@ -1,7 +1,8 @@
 import csv
-import os
 import json
+import os
 from pathlib import Path
+
 import click
 import requests
 import yaml
@@ -11,7 +12,7 @@ from rich.table import Table
 
 def get_repo_data(headers: dict, owner: str, repo: str) -> dict:
     """Fetches all data required for output for each repo"""
-    #TODO: Handle missing data if non-200 response
+    # TODO: Handle missing data if non-200 response
     resp_data = requests.get(
         f"https://api.github.com/repos/{owner}/{repo}", headers=headers
     ).json()
@@ -43,15 +44,24 @@ def parse_repos_list_from_yaml(file) -> dict:
 
 
 @click.command()
-@click.option("-r", "--repos", type=click.Path(exists=True), help="Yaml representation of Repos to Pull")
+@click.option(
+    "-r",
+    "--repos",
+    type=click.Path(exists=True),
+    help="Yaml representation of Repos to Pull",
+)
 @click.option("-o", "--org", help="Pull stats for all repos owned by Org")
 @click.option("-u", "--user", help="Pull stats for all repos owned by User")
-@click.option("-f","--output-file", help="Output file path. Only supports CSV or JSON")
+@click.option(
+    "-f", "--output-file", type=Path, help="Output file path. Only supports CSV or JSON"
+)
 @click.option("-t", "--auth-token", help="GitHb Access Token")
 def main(repos, org, user, output_file, auth_token):
-    """Fetch GitHub repo stats!"""
+    """Fetch GitHub repo stats!
 
-    #TODO: Take token as envvar or as cli option and handle missing token
+    TODO: Add usage instructions for cli --help
+    """
+
     if auth_token:
         HEADERS = {"Authorization": f"token {auth_token}"}
     else:
@@ -60,37 +70,37 @@ def main(repos, org, user, output_file, auth_token):
         except:
             ValueError("Please set a GitHub Access Token.")
 
-    # Pull repos list from either source
     if repos:
         repos_dict = parse_repos_list_from_yaml(repos)
+
     elif org:
-        owner = org.strip().strip('/')
-        org_repos = requests.get(f"https://api.github.com/orgs/{owner}/repos", headers=HEADERS).json()
+        owner = org.strip().strip("/")
+        org_repos = requests.get(
+            f"https://api.github.com/orgs/{owner}/repos", headers=HEADERS
+        ).json()
         repo_names = [repo["name"] for repo in org_repos]
         repos_dict = {"Owners": [{owner: repo_names}]}
+
     elif user:
-        owner = user.strip().strip('/')
-        org_repos = requests.get(f"https://api.github.com/users/{owner}/repos", headers=HEADERS).json()
+        owner = user.strip().strip("/")
+        org_repos = requests.get(
+            f"https://api.github.com/users/{owner}/repos", headers=HEADERS
+        ).json()
         repo_names = [repo["name"] for repo in org_repos]
         repos_dict = {"Owners": [{owner: repo_names}]}
 
-
-    # Iterate list and pull data
-    # Pass dict to get repo data - finish with list of dicts
     final_data = []
     for repo_owner in repos_dict["Owners"]:
         key = next(iter(repo_owner))
         for repo in repo_owner[key]:
             final_data.append(get_repo_data(HEADERS, key, repo))
 
-    # Pass data to output type
-    # Pass list of dicts to output fuction
     if output_file:
         file_path = Path(output_file)
 
-        if file_path.suffix == '.csv':
+        if file_path.suffix == ".csv":
             print("Creating CSV")
-            with open("data.csv", "w", newline='') as file:
+            with open("data.csv", "w", newline="") as file:
                 writer = csv.DictWriter(
                     file,
                     fieldnames=[
@@ -122,7 +132,7 @@ def main(repos, org, user, output_file, auth_token):
 
             print("CSV file created.")
 
-        elif file_path.suffix == '.json':
+        elif file_path.suffix == ".json":
             print("Creating JSON")
             with open(file_path, "w") as file:
                 file_data = {"Data": [data for data in final_data]}

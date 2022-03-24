@@ -4,3 +4,6 @@ click
 rich
 flit
 black
+isort
+pytest
+pytest-cov
