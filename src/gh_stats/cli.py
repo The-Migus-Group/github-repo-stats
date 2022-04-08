@@ -65,10 +65,10 @@ def main(repos, org, user, output_file, auth_token):
     if auth_token:
         HEADERS = {"Authorization": f"token {auth_token}"}
     else:
-        try:
+        if os.getenv('GH_TOKEN') is not None:
             HEADERS = {"Authorization": f"token {os.getenv('GH_TOKEN')}"}
-        except:
-            ValueError("Please set a GitHub Access Token.")
+        else:
+            raise ValueError("Please set a GitHub Access Token.")
 
     if repos:
         repos_dict = parse_repos_list_from_yaml(repos)
@@ -89,11 +89,16 @@ def main(repos, org, user, output_file, auth_token):
         repo_names = [repo["name"] for repo in org_repos]
         repos_dict = {"Owners": [{owner: repo_names}]}
 
+    else:
+        raise ValueError("Please provide a yaml file, owner, or user.")
+
+
     final_data = []
     for repo_owner in repos_dict["Owners"]:
         key = next(iter(repo_owner))
         for repo in repo_owner[key]:
             final_data.append(get_repo_data(HEADERS, key, repo))
+
 
     if output_file:
         file_path = Path(output_file)
