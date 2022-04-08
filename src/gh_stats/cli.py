@@ -43,6 +43,16 @@ def parse_repos_list_from_yaml(file) -> dict:
         return yaml.safe_load(yaml_file)
 
 
+def fetch_owners_repos(headers: str, name: str, repo_type: str) -> dict:
+    """Fetch the owners repos - org or user"""
+    owner = name.strip().strip("/")
+    org_repos = requests.get(
+        f"https://api.github.com/{repo_type}/{owner}/repos", headers=headers
+    ).json()
+    repo_names = [repo["name"] for repo in org_repos]
+    return {"Owners": [{owner: repo_names}]}
+
+
 @click.command()
 @click.option(
     "-r",
@@ -59,13 +69,17 @@ def parse_repos_list_from_yaml(file) -> dict:
 def main(repos, org, user, output_file, auth_token):
     """Fetch GitHub repo stats!
 
-    TODO: Add usage instructions for cli --help
+    REQUIRES either a repos yaml file, an org name, or a user's name.
+
+    Typical usage:
+    \n\t$ gh-stats -r example.yaml
+    \n\t$ gh-stats --repos example.yaml --output-file path/to/file.csv
     """
 
     if auth_token:
         HEADERS = {"Authorization": f"token {auth_token}"}
     else:
-        if os.getenv('GH_TOKEN') is not None:
+        if os.getenv("GH_TOKEN") is not None:
             HEADERS = {"Authorization": f"token {os.getenv('GH_TOKEN')}"}
         else:
             raise ValueError("Please set a GitHub Access Token.")
@@ -74,31 +88,19 @@ def main(repos, org, user, output_file, auth_token):
         repos_dict = parse_repos_list_from_yaml(repos)
 
     elif org:
-        owner = org.strip().strip("/")
-        org_repos = requests.get(
-            f"https://api.github.com/orgs/{owner}/repos", headers=HEADERS
-        ).json()
-        repo_names = [repo["name"] for repo in org_repos]
-        repos_dict = {"Owners": [{owner: repo_names}]}
+        repos_dict = fetch_owners_repos(HEADERS, org, "orgs")
 
     elif user:
-        owner = user.strip().strip("/")
-        org_repos = requests.get(
-            f"https://api.github.com/users/{owner}/repos", headers=HEADERS
-        ).json()
-        repo_names = [repo["name"] for repo in org_repos]
-        repos_dict = {"Owners": [{owner: repo_names}]}
+        repos_dict = fetch_owners_repos(HEADERS, user, "users")
 
     else:
         raise ValueError("Please provide a yaml file, owner, or user.")
-
 
     final_data = []
     for repo_owner in repos_dict["Owners"]:
         key = next(iter(repo_owner))
         for repo in repo_owner[key]:
             final_data.append(get_repo_data(HEADERS, key, repo))
-
 
     if output_file:
         file_path = Path(output_file)
