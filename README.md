@@ -11,6 +11,7 @@ Fetch your repo stats from the GitHub API. Stats currently reported include:
 - Views Unique
 
 ## SetUp
+
 In order to use tool, you will require a GitHub [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) which will be used to authenticate you on each API call.
 
 This should be set as an evironment variable named `GH_TOKEN`. Alternatively, you an pass it directly as an option into the cli with the `-t` / `--auth-token` flag.
@@ -20,7 +21,7 @@ This should be set as an evironment variable named `GH_TOKEN`. Alternatively, yo
 Install the latest version from PyPi with:
 
 ```
-python -m pip install gh-stats
+python -m pip install github-repo-stats
 ```
 
 ## Use
