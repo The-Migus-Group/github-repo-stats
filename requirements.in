@@ -5,6 +5,7 @@ rich
 flit
 black
 isort
+tox
 pytest
 pytest-cov
 python-dotenv
