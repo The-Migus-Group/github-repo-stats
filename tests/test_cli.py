@@ -1,4 +1,5 @@
 import os
+import pathlib
 
 from click.testing import CliRunner
 from dotenv import load_dotenv
@@ -45,3 +46,20 @@ def test_value_error_when_no_GH_token():
     result = runner.invoke(main, ["-r", "example.yaml"])
     assert isinstance(result.exception, ValueError)
     os.environ["GH_TOKEN"] = token  # Add back so other tests don't fail.
+
+
+def test_output_as_json():
+    result = runner.invoke(main, ["-r", "example.yaml", "-f" "data.json"])
+    assert result.exit_code == 0
+    assert pathlib.Path("data.json").exists
+
+
+def test_output_as_csv():
+    result = runner.invoke(main, ["-r", "example.yaml", "-f" "data.csv"])
+    assert result.exit_code == 0
+    assert pathlib.Path("data.csv").exists
+
+
+def test_invalid_file_type():
+    result = runner.invoke(main, ["-r", "example.yaml", "-f" "data.txt"])
+    assert isinstance(result.exception, ValueError)
