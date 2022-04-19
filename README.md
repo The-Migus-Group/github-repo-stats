@@ -1,24 +1,42 @@
 # GitHub Repo Stats
 
+Fetch your repo stats from the GitHub API. Stats currently reported include:
+
+- Forks
+- Stars
+- Watchers
+- Clones Total
+- Clones Unique
+- Views Total
+- Views Unique
 
 ## SetUp
 In order to use tool, you will require a GitHub [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) which will be used to authenticate you on each API call.
 
-This should be set as an evironment variable named `GH_TOKEN`. Alternatively, you an pass it directly as and option into the cli with the `-t` / `--auth-token` flag.
+This should be set as an evironment variable named `GH_TOKEN`. Alternatively, you an pass it directly as an option into the cli with the `-t` / `--auth-token` flag.
 
-## Install 
+## Install
 
-TODO:
+Install the latest version from PyPi with:
 
+```
+python -m pip install gh-stats
+```
 
 ## Use
 
 ```
-Usage: gh_stats.py [OPTIONS]
+Usage: cli.py [OPTIONS]
 
   Fetch GitHub repo stats!
 
-  TODO: Add usage instructions for cli --help
+  REQUIRES either a repos yaml file, an org name, or a user's name.
+
+  Typical usage:
+
+      $ gh-stats -r example.yaml
+
+      $ gh-stats --repos example.yaml --output-file path/to/file.csv
 
 Options:
   -r, --repos PATH        Yaml representation of Repos to Pull
@@ -28,3 +46,11 @@ Options:
   -t, --auth-token TEXT   GitHb Access Token
   --help                  Show this message and exit.
 ```
+
+## Development
+
+For local development, you may find it easier to add an `.env` file to the project root with your `GH_TOKEN`. But setting it explicitly in the environment will also work.
+
+All dev dependencies can be found in the `requirements.txt` file.
+
+This project uses `pytest` for testing. If creating a PR, please use `tox` to run the tests against all supported Python versions.
