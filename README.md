@@ -1,4 +1,4 @@
-![PyPI Version](https://img.shields.io/pypi/v/github-repo-stats) ![License](https://img.shields.io/github/license/thycotic/github-repo-stats) ![Python Versions](https://img.shields.io/pypi/pyversions/github-repo-stats)
+![PyPI Version](https://img.shields.io/pypi/v/github-repo-stats) ![License](https://img.shields.io/github/license/the-migus-group/github-repo-stats) ![Python Versions](https://img.shields.io/pypi/pyversions/github-repo-stats)
 
 # GitHub Repo Stats
 
