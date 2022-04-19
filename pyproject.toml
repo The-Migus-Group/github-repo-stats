@@ -15,17 +15,17 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
 ]
 dynamic = ["description"]
-version = "0.1.0"
 requires-python=">=3.7"
-requires = [
+dependencies = [
     "pyyaml==6.0",
     "requests==2.27.1",
     "click==8.1.2",
     "rich==12.2.0"
 ]
+version = "0.1.0"
 
 [project.urls]
 Home = "https://migusgroup.com"
 
 [project.scripts]
-gh-stats = "src.gh_stats.cli:main"
+gh-stats = "gh_stats.cli:main"
