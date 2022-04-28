@@ -107,7 +107,7 @@ def main(repos, org, user, output_file, auth_token):
 
         if file_path.suffix == ".csv":
             print("Creating CSV")
-            with open("data.csv", "w", newline="") as file:
+            with open(file_path, "w", newline="") as file:
                 writer = csv.DictWriter(
                     file,
                     fieldnames=[
