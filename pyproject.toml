@@ -22,7 +22,7 @@ dependencies = [
     "click==8.1.2",
     "rich==12.2.0"
 ]
-version = "0.1.0"
+version = "0.1.1"
 
 [project.urls]
 Home = "https://migusgroup.com"
