@@ -65,7 +65,7 @@ def fetch_owners_repos(headers: str, name: str, repo_type: str) -> dict:
 @click.option(
     "-f", "--output-file", type=Path, help="Output file path. Only supports CSV or JSON"
 )
-@click.option("-t", "--auth-token", help="GitHb Access Token")
+@click.option("-t", "--auth-token", help="GitHub Access Token")
 def main(repos, org, user, output_file, auth_token):
     """Fetch GitHub repo stats!
 
