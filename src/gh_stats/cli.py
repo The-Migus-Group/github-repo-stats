@@ -12,29 +12,45 @@ from rich.table import Table
 
 def get_repo_data(headers: dict, owner: str, repo: str) -> dict:
     """Fetches all data required for output for each repo"""
-    # TODO: Handle missing data if non-200 response
-    resp_data = requests.get(
-        f"https://api.github.com/repos/{owner}/{repo}", headers=headers
-    ).json()
 
-    views = requests.get(
+    resp = requests.get(f"https://api.github.com/repos/{owner}/{repo}", headers=headers)
+
+    # Set an initial values to avoid errors
+    resp_data, views, clones = None, None, None
+    if resp.status_code == 200:
+        resp_data = resp.json()
+    else:
+        print(f"Repo {repo} returned this error: ", resp.text)
+
+    views_resp = requests.get(
         f"https://api.github.com/repos/{owner}/{repo}/traffic/views", headers=headers
-    ).json()
+    )
 
-    clones = requests.get(
+    if views_resp.status_code == 200:
+        views = views_resp.json()
+    else:
+        print(f"Repo {repo} returned this error: ", views_resp.text)
+
+    clones_resp = requests.get(
         f"https://api.github.com/repos/{owner}/{repo}/traffic/clones", headers=headers
-    ).json()
+    )
 
-    return {
-        "Repo": f"{owner}/{repo}",
-        "Forks": resp_data["forks_count"],
-        "Stars": resp_data["stargazers_count"],
-        "Watchers": resp_data["watchers_count"],
-        "Clones Total": clones["count"],
-        "Clones Unique": clones["uniques"],
-        "Views Total": views["count"],
-        "Views Unique": views["uniques"],
-    }
+    if clones_resp.status_code == 200:
+        clones = clones_resp.json()
+    else:
+        print(f"Repo {repo} returned this error: ", clones_resp.text)
+
+    if all([resp_data, views, clones]):
+        return {
+            "Repo": f"{owner}/{repo}",
+            "Forks": resp_data["forks_count"],
+            "Stars": resp_data["stargazers_count"],
+            "Watchers": resp_data["watchers_count"],
+            "Clones Total": clones["count"],
+            "Clones Unique": clones["uniques"],
+            "Views Total": views["count"],
+            "Views Unique": views["uniques"],
+        }
 
 
 def parse_repos_list_from_yaml(file) -> dict:
@@ -100,79 +116,85 @@ def main(repos, org, user, output_file, auth_token):
     for repo_owner in repos_dict["Owners"]:
         key = next(iter(repo_owner))
         for repo in repo_owner[key]:
-            final_data.append(get_repo_data(HEADERS, key, repo))
+            data = get_repo_data(HEADERS, key, repo)
+            # Do not append None values
+            if data:
+                final_data.append(data)
 
-    if output_file:
-        file_path = Path(output_file)
+    if final_data:
 
-        if file_path.suffix == ".csv":
-            print("Creating CSV")
-            with open(file_path, "w", newline="") as file:
-                writer = csv.DictWriter(
-                    file,
-                    fieldnames=[
-                        "Repo",
-                        "Forks",
-                        "Stars",
-                        "Watchers",
-                        "Clones Total",
-                        "Clones Unique",
-                        "Views Total",
-                        "Views Unique",
-                    ],
-                )
-                writer.writeheader()
+        if output_file:
+            file_path = Path(output_file)
 
-                for data in final_data:
-                    writer.writerow(
-                        {
-                            "Repo": data["Repo"],
-                            "Forks": data["Forks"],
-                            "Stars": data["Stars"],
-                            "Watchers": data["Watchers"],
-                            "Clones Total": data["Clones Total"],
-                            "Clones Unique": data["Clones Unique"],
-                            "Views Total": data["Views Total"],
-                            "Views Unique": data["Views Unique"],
-                        }
+            if file_path.suffix == ".csv":
+                print("Creating CSV")
+                with open(file_path, "w", newline="") as file:
+                    writer = csv.DictWriter(
+                        file,
+                        fieldnames=[
+                            "Repo",
+                            "Forks",
+                            "Stars",
+                            "Watchers",
+                            "Clones Total",
+                            "Clones Unique",
+                            "Views Total",
+                            "Views Unique",
+                        ],
                     )
+                    writer.writeheader()
 
-            print("CSV file created.")
+                    for data in final_data:
+                        writer.writerow(
+                            {
+                                "Repo": data["Repo"],
+                                "Forks": data["Forks"],
+                                "Stars": data["Stars"],
+                                "Watchers": data["Watchers"],
+                                "Clones Total": data["Clones Total"],
+                                "Clones Unique": data["Clones Unique"],
+                                "Views Total": data["Views Total"],
+                                "Views Unique": data["Views Unique"],
+                            }
+                        )
 
-        elif file_path.suffix == ".json":
-            print("Creating JSON")
-            with open(file_path, "w") as file:
-                file_data = {"Data": [data for data in final_data]}
-                file.write(json.dumps(file_data, indent=4))
+                print("CSV file created.")
+
+            elif file_path.suffix == ".json":
+                print("Creating JSON")
+                with open(file_path, "w") as file:
+                    file_data = {"Data": [data for data in final_data]}
+                    file.write(json.dumps(file_data, indent=4))
+
+            else:
+                raise ValueError("Output file must be CSV or JSON")
 
         else:
-            raise ValueError("Output file must be CSV or JSON")
 
-    else:
-        table = Table(title="GitHub Stats")
-        table.add_column("Repo")
-        table.add_column("Forks", justify="center")
-        table.add_column("Stars", justify="center")
-        table.add_column("Watchers", justify="center")
-        table.add_column("Clones Total", justify="center")
-        table.add_column("Clones Unique", justify="center")
-        table.add_column("Views Total", justify="center")
-        table.add_column("Views Unique", justify="center")
+            table = Table(title="GitHub Stats")
+            table.add_column("Repo")
+            table.add_column("Forks", justify="center")
+            table.add_column("Stars", justify="center")
+            table.add_column("Watchers", justify="center")
+            table.add_column("Clones Total", justify="center")
+            table.add_column("Clones Unique", justify="center")
+            table.add_column("Views Total", justify="center")
+            table.add_column("Views Unique", justify="center")
 
-        for data in final_data:
-            table.add_row(
-                str(data["Repo"]),
-                str(data["Forks"]),
-                str(data["Stars"]),
-                str(data["Watchers"]),
-                str(data["Clones Total"]),
-                str(data["Clones Unique"]),
-                str(data["Views Total"]),
-                str(data["Views Unique"]),
-            )
+            for data in final_data:
+                table.add_row(
+                    str(data["Repo"]),
+                    str(data["Forks"]),
+                    str(data["Stars"]),
+                    str(data["Watchers"]),
+                    str(data["Clones Total"]),
+                    str(data["Clones Unique"]),
+                    str(data["Views Total"]),
+                    str(data["Views Unique"]),
+                )
 
-        console = Console()
-        console.print(table)
+            console = Console()
+            console.print(table)
 
 
 if __name__ == "__main__":
