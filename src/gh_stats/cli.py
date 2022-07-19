@@ -13,10 +13,10 @@ from rich.table import Table
 def get_repo_data(headers: dict, owner: str, repo: str) -> dict:
     """Fetches all data required for output for each repo"""
 
+    resp_data, views, clones = None, None, None
+
     resp = requests.get(f"https://api.github.com/repos/{owner}/{repo}", headers=headers)
 
-    # Set an initial values to avoid errors
-    resp_data, views, clones = None, None, None
     if resp.status_code == 200:
         resp_data = resp.json()
     else:
@@ -117,7 +117,7 @@ def main(repos, org, user, output_file, auth_token):
         key = next(iter(repo_owner))
         for repo in repo_owner[key]:
             data = get_repo_data(HEADERS, key, repo)
-            # Do not append None values
+
             if data:
                 final_data.append(data)
 
