@@ -8,6 +8,14 @@ import requests
 import yaml
 from rich.console import Console
 from rich.table import Table
+from typing import Union
+
+
+def check_response(response, repo) -> Union[str, dict]:
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(f"Repo {repo} returned this error: ", response.text)
 
 
 def get_repo_data(headers: dict, owner: str, repo: str) -> dict:
@@ -17,28 +25,19 @@ def get_repo_data(headers: dict, owner: str, repo: str) -> dict:
 
     resp = requests.get(f"https://api.github.com/repos/{owner}/{repo}", headers=headers)
 
-    if resp.status_code == 200:
-        resp_data = resp.json()
-    else:
-        print(f"Repo {repo} returned this error: ", resp.text)
+    resp_data = check_response(resp, repo)
 
     views_resp = requests.get(
         f"https://api.github.com/repos/{owner}/{repo}/traffic/views", headers=headers
     )
 
-    if views_resp.status_code == 200:
-        views = views_resp.json()
-    else:
-        print(f"Repo {repo} returned this error: ", views_resp.text)
+    views = check_response(views_resp, repo)
 
     clones_resp = requests.get(
         f"https://api.github.com/repos/{owner}/{repo}/traffic/clones", headers=headers
     )
 
-    if clones_resp.status_code == 200:
-        clones = clones_resp.json()
-    else:
-        print(f"Repo {repo} returned this error: ", clones_resp.text)
+    clones = check_response(clones_resp, repo)
 
     if all([resp_data, views, clones]):
         return {
