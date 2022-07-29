@@ -35,7 +35,7 @@ def get_repo_data(headers: dict, owner: str, repo: str, period: str) -> dict:
     views = check_response(views_resp, repo)
 
     clones_resp = requests.get(
-        f"https://api.github.com/repos/{owner}/{repo}/traffic/clones??per={period}",
+        f"https://api.github.com/repos/{owner}/{repo}/traffic/clones?per={period}",
         headers=headers,
     )
 
