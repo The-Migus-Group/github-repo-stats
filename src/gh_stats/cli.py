@@ -18,7 +18,7 @@ def check_response(response, repo) -> Union[str, dict]:
         print(f"Repo {repo} returned this error: ", response.text)
 
 
-def get_repo_data(headers: dict, owner: str, repo: str) -> dict:
+def get_repo_data(headers: dict, owner: str, repo: str, period: str) -> dict:
     """Fetches all data required for output for each repo"""
 
     resp_data, views, clones = None, None, None
@@ -28,13 +28,15 @@ def get_repo_data(headers: dict, owner: str, repo: str) -> dict:
     resp_data = check_response(resp, repo)
 
     views_resp = requests.get(
-        f"https://api.github.com/repos/{owner}/{repo}/traffic/views", headers=headers
+        f"https://api.github.com/repos/{owner}/{repo}/traffic/views?per={period}",
+        headers=headers,
     )
 
     views = check_response(views_resp, repo)
 
     clones_resp = requests.get(
-        f"https://api.github.com/repos/{owner}/{repo}/traffic/clones", headers=headers
+        f"https://api.github.com/repos/{owner}/{repo}/traffic/clones??per={period}",
+        headers=headers,
     )
 
     clones = check_response(clones_resp, repo)
@@ -81,7 +83,8 @@ def fetch_owners_repos(headers: str, name: str, repo_type: str) -> dict:
     "-f", "--output-file", type=Path, help="Output file path. Only supports CSV or JSON"
 )
 @click.option("-t", "--auth-token", help="GitHub Access Token")
-def main(repos, org, user, output_file, auth_token):
+@click.option("-p", "--period", default="day", help="Time frame to display results for")
+def main(repos, org, user, output_file, auth_token, period):
     """Fetch GitHub repo stats!
 
     REQUIRES either a repos yaml file, an org name, or a user's name.
@@ -115,7 +118,7 @@ def main(repos, org, user, output_file, auth_token):
     for repo_owner in repos_dict["Owners"]:
         key = next(iter(repo_owner))
         for repo in repo_owner[key]:
-            data = get_repo_data(HEADERS, key, repo)
+            data = get_repo_data(HEADERS, key, repo, period)
 
             if data:
                 final_data.append(data)
@@ -179,6 +182,7 @@ def main(repos, org, user, output_file, auth_token):
             table.add_column("Clones Unique", justify="center")
             table.add_column("Views Total", justify="center")
             table.add_column("Views Unique", justify="center")
+            table.add_column("Time Frame", justify="center")
 
             for data in final_data:
                 table.add_row(
@@ -190,6 +194,7 @@ def main(repos, org, user, output_file, auth_token):
                     str(data["Clones Unique"]),
                     str(data["Views Total"]),
                     str(data["Views Unique"]),
+                    str(period.capitalize()),
                 )
 
             console = Console()
