@@ -47,6 +47,7 @@ Options:
   -u, --user TEXT         Pull stats for all repos owned by User
   -f, --output-file PATH  Output file path. Only supports CSV or JSON
   -t, --auth-token TEXT   GitHb Access Token
+  -p, --period TEXT       Time frame to display results for. Default: 'day'. Can be one of ` `, `day` `week`
   --help                  Show this message and exit.
 ```
 
