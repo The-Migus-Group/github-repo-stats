@@ -178,11 +178,18 @@ def main(repos, org, user, output_file, auth_token, period):
             table.add_column("Forks", justify="center")
             table.add_column("Stars", justify="center")
             table.add_column("Watchers", justify="center")
-            table.add_column("Clones Total", justify="center")
-            table.add_column("Clones Unique", justify="center")
-            table.add_column("Views Total", justify="center")
-            table.add_column("Views Unique", justify="center")
-            table.add_column("Time Frame", justify="center")
+            table.add_column(
+                f"Clones Total\n per {period.capitalize()}", justify="center"
+            )
+            table.add_column(
+                f"Clones Unique\n per {period.capitalize()}", justify="center"
+            )
+            table.add_column(
+                f"Views Total\n per {period.capitalize()}", justify="center"
+            )
+            table.add_column(
+                f"Views Unique\n per {period.capitalize()}", justify="center"
+            )
 
             for data in final_data:
                 table.add_row(
@@ -194,7 +201,6 @@ def main(repos, org, user, output_file, auth_token, period):
                     str(data["Clones Unique"]),
                     str(data["Views Total"]),
                     str(data["Views Unique"]),
-                    str(period.capitalize()),
                 )
 
             console = Console()
