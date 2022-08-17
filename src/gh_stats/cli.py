@@ -26,17 +26,20 @@ def get_repo_data(headers: dict, owner: str, repo: str, period: str) -> dict:
     resp = requests.get(f"https://api.github.com/repos/{owner}/{repo}", headers=headers)
 
     resp_data = check_response(resp, repo)
+    payload = {"per": period}
 
     views_resp = requests.get(
-        f"https://api.github.com/repos/{owner}/{repo}/traffic/views?per={period}",
+        f"https://api.github.com/repos/{owner}/{repo}/traffic/views",
         headers=headers,
+        params=payload,
     )
 
     views = check_response(views_resp, repo)
 
     clones_resp = requests.get(
-        f"https://api.github.com/repos/{owner}/{repo}/traffic/clones?per={period}",
+        f"https://api.github.com/repos/{owner}/{repo}/traffic/clones",
         headers=headers,
+        params=payload,
     )
 
     clones = check_response(clones_resp, repo)
